@@ -1,0 +1,70 @@
+name: 'Setup goose'
+description: 'Install and authorize goose'
+branding:
+  icon: box
+  color: green
+inputs:
+  version:
+    description: 'Version of goose to install (tip, latest-release, v0.14.1, etc.)'
+    required: true
+    default: 'latest-release'
+runs:
+  using: "composite"
+  steps:
+  - shell: bash
+    run: |
+      set -ex
+
+      # Install goose:
+      # - if version is "tip", install from tip of main.
+      # - if version is "latest-release", look up latest release.
+      # - otherwise, install the specified version.
+      case ${{ inputs.version }} in
+      tip)
+        echo "Installing goose using go install"
+        go install github.com/pressly/goose/v3/cmd/goose@latest
+        ;;
+      latest-release)
+        tag=$(curl -L -s -u "username:${{ github.token }}" https://api.github.com/pressly/goose/releases/latest | jq -r '.tag_name')
+        ;;
+      *)
+        tag="${{ inputs.version }}"
+      esac
+
+      os=${{ runner.os }}
+      if [[ $os == "macOS" ]]; then
+        os="darwin"
+      fi
+      if [[ $os == "Windows" ]]; then
+        os="windows"
+      fi
+      if [[ $os == "LINUX" ]]; then
+        os="linux"
+      fi
+
+      arch=${{ runner.architecture }}
+      if [[ $arch == "X64" ]]; then
+        arch="x86_64"
+      fi
+      if [[ $arch == "ARM64" ]]; then
+        arch="arm64"
+      fi
+      if [[ $arch == "X86" ]]; then
+        echo "X86 architecture is not supported"
+        exit 1
+      fi
+      if [[ $arch == "ARM" ]]; then
+        echo "ARM architecture is not supported"
+        exit 1
+      fi
+
+      
+
+      if [[ ! -z ${tag} ]]; then
+        echo "Installing goose @ ${tag} for ${os}"
+        if [[ $os == "windows" ]]; then
+          powershell -Command "Invoke-WebRequest -Uri https://github.com/pressly/goose/releases/download/${tag}/goose_${os}_${arch}.exe -OutFile C:\goose\goose.exe"
+        else
+          curl -fsL https://github.com/pressly/goose/releases/download/${tag}/goose_${os}_${arch} > /usr/local/bin/goose
+        fi
+      fi
