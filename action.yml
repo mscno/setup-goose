@@ -55,7 +55,8 @@ runs:
       "ARM64")
         arch="arm64"
         ;;
-        echo "Unsupported architecture: $arch"
+      *)
+        echo "Unsupported architecture: ${{ runner.arch }}"
         exit 1
         ;;
       esac
