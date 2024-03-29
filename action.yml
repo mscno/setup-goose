@@ -67,5 +67,6 @@ runs:
           powershell -Command "Invoke-WebRequest -Uri https://github.com/pressly/goose/releases/download/${tag}/goose_${os}_${arch}.exe -OutFile C:\goose\goose.exe"
         else
           curl -fsL https://github.com/pressly/goose/releases/download/${tag}/goose_${os}_${arch} > /usr/local/bin/goose
+          chmod +x /usr/local/bin/goose
         fi
       fi
