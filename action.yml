@@ -32,16 +32,21 @@ runs:
         tag="${{ inputs.version }}"
       esac
 
-      os=${{ runner.os }}
-      if [[ $os == "macOS" ]]; then
+      case ${{ runner.os }} in
+      macOS)
         os="darwin"
-      fi
-      if [[ $os == "Windows" ]]; then
+        ;;
+      Windows)
         os="windows"
-      fi
-      if [[ $os == "LINUX" ]]; then
+        ;;
+      "Linux")
         os="linux"
-      fi
+        ;;
+      *)
+        echo "Unsupported OS: ${{ runner.os }}"
+        exit 1
+        ;;
+      esac
 
       arch=${{ runner.architecture }}
       if [[ $arch == "X64" ]]; then
