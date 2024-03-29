@@ -48,7 +48,7 @@ runs:
         ;;
       esac
 
-      case $arch in
+      case ${{ runner.arch }} in
       "X64")
         arch="x86_64"
         ;;
