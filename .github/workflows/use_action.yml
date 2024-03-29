@@ -25,12 +25,12 @@ jobs:
       - uses: actions/checkout@v4
 
       # Minimal publish
-      - uses: mscno/setup-goose@main
+      - uses: mscno/setup-goose@master
 
       - run: goose -version
 
       - name: Install old release
-        uses: mscno/setup-goose@main
+        uses: mscno/setup-goose@master
         with:
           version: v3.15.0
 
@@ -38,7 +38,7 @@ jobs:
         run: goose -version | grep 3.15.0
 
       - name: Install from tip
-        uses: mscno/setup-goose@main
+        uses: mscno/setup-goose@master
         with:
           version: tip
 
