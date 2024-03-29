@@ -48,26 +48,20 @@ runs:
         ;;
       esac
 
-      arch=${{ runner.architecture }}
-      if [[ $arch == "X64" ]]; then
+      case $arch in
+      "X64")
         arch="x86_64"
-      fi
-      if [[ $arch == "ARM64" ]]; then
+        ;;
+      "ARM64")
         arch="arm64"
-      fi
-      if [[ $arch == "X86" ]]; then
-        echo "X86 architecture is not supported"
+        ;;
+        echo "Unsupported architecture: $arch"
         exit 1
-      fi
-      if [[ $arch == "ARM" ]]; then
-        echo "ARM architecture is not supported"
-        exit 1
-      fi
-
+        ;;
+      esac
       
-
       if [[ ! -z ${tag} ]]; then
-        echo "Installing goose @ ${tag} for ${os}"
+        echo "Installing goose @ ${tag} for ${os}_${arch}"
         if [[ $os == "windows" ]]; then
           powershell -Command "Invoke-WebRequest -Uri https://github.com/pressly/goose/releases/download/${tag}/goose_${os}_${arch}.exe -OutFile C:\goose\goose.exe"
         else
