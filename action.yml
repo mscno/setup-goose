@@ -5,7 +5,7 @@ branding:
   color: green
 inputs:
   version:
-    description: 'Version of goose to install (tip, latest-release, v0.14.1, etc.)'
+    description: 'Version of goose to install (tip, latest-release, v3.26.0, etc.)'
     required: true
     default: 'latest-release'
 runs:
@@ -13,24 +13,35 @@ runs:
   steps:
   - shell: bash
     run: |
-      set -ex
+      set -euo pipefail
+      set -x
+
+      version="${{ inputs.version }}"
 
       # Install goose:
       # - if version is "tip", install from tip of main.
       # - if version is "latest-release", look up latest release.
       # - otherwise, install the specified version.
       
-      case ${{ inputs.version }} in
+      case "${version}" in
       tip)
         echo "Installing goose using go install"
-        go install github.com/pressly/goose/v3/cmd/goose@latest
-        ;;
-      latest-release)
-        tag=$(curl -L -s -u "username:${{ github.token }}" https://api.github.com/repos/pressly/goose/releases/latest | jq -r '.tag_name')
-        ;;
-      *)
-        tag="${{ inputs.version }}"
+        go install github.com/pressly/goose/v3/cmd/goose@main
+        echo "$(go env GOPATH)/bin" >> "$GITHUB_PATH"
+        exit 0
       esac
+
+      if [[ "${version}" == "latest-release" ]]; then
+        tag="$(
+          curl -fsSL \
+            -H "Authorization: Bearer ${{ github.token }}" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "https://api.github.com/repos/pressly/goose/releases/latest" \
+          | python -c 'import json,sys; print(json.load(sys.stdin)["tag_name"])'
+        )"
+      else
+        tag="${version}"
+      fi
 
       case ${{ runner.os }} in
       macOS)
@@ -61,12 +72,27 @@ runs:
         ;;
       esac
       
-      if [[ ! -z ${tag} ]]; then
-        echo "Installing goose @ ${tag} for ${os}_${arch}"
-        if [[ $os == "windows" ]]; then
-          powershell -Command "Invoke-WebRequest -Uri https://github.com/pressly/goose/releases/download/${tag}/goose_${os}_${arch}.exe -OutFile C:\goose\goose.exe"
-        else
-          curl -fsL https://github.com/pressly/goose/releases/download/${tag}/goose_${os}_${arch} > /usr/local/bin/goose
-          chmod +x /usr/local/bin/goose
-        fi
+      if [[ -z "${tag}" ]]; then
+        echo "Failed to resolve goose release tag"
+        exit 1
       fi
+
+      install_dir="${RUNNER_TEMP:-/tmp}/goose/bin"
+      mkdir -p "${install_dir}"
+
+      ext=""
+      if [[ "${os}" == "windows" ]]; then
+        ext=".exe"
+      fi
+
+      asset="goose_${os}_${arch}${ext}"
+      dest="${install_dir}/goose${ext}"
+
+      echo "Installing goose @ ${tag} (${asset})"
+      curl -fsSL -o "${dest}" "https://github.com/pressly/goose/releases/download/${tag}/${asset}"
+
+      if [[ "${os}" != "windows" ]]; then
+        chmod +x "${dest}"
+      fi
+
+      echo "${install_dir}" >> "$GITHUB_PATH"
