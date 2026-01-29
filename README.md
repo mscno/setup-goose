@@ -18,9 +18,9 @@ jobs:
     steps:
       - uses: actions/setup-go@v5
         with:
-          go-version: '1.20.x'
+          go-version: '1.22.x'
 
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - uses: mscno/setup-goose@v1
 
@@ -29,20 +29,20 @@ jobs:
 
 That's it! This workflow will run your migrations using goose.
 
-The action works on Linux and macOS runners. If you'd like support for Windows runners, let us know!
+The action works on Linux, macOS, and Windows runners.
 
 ## Select goose version to install
-By default, pressly/setup-goose installs the latest released version of goose.
+By default, mscno/setup-goose installs the latest released version of goose.
 
 You can select a version with the version parameter:
 
 ```yaml
 - uses: mscno/setup-goose@v1
   with:
-    version: v0.14.1
+    version: v3.26.0
 ```
 
-To build and install goose from source using go install, specify version: `tip`.
+To build and install goose from source using `go install`, specify `version: tip`.
 
 ## Running Migrations
 
@@ -59,6 +59,6 @@ After installing goose with this action, you can run your migrations with goose 
 You can also run specific migrations with goose up-to <version>, roll back migrations with goose down, and more. See the goose documentation for more information.
 
 ## A note on versioning
-The @v0.X in the uses statement refers to the version of the action definition in this repo.
+The `@v1` in the `uses:` statement refers to the version of the action definition in this repo.
 
-Regardless of what version of the action definition you use, pressly/setup-goose will install the latest released version of goose unless otherwise specified with version:.
+Regardless of what version of the action definition you use, mscno/setup-goose will install the latest released version of goose unless otherwise specified with `version:`.
